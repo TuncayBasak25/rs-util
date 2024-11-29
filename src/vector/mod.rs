@@ -14,3 +14,5 @@ impl V2 {
         self.1
     }
 }
+
+pub struct  HitBox (V2, V2);
