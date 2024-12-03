@@ -1,4 +1,4 @@
-use crate::V2;
+use crate::{ecs::Flag, V2};
 
 use super::EntityId;
 

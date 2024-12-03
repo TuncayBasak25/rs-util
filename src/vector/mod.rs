@@ -1,5 +1,7 @@
 #[derive(Debug, Clone, Copy)]
-pub struct V2(pub f32, pub f32);
+pub struct V2 {
+    
+};
 
 impl V2 {
     pub fn null() -> Self {
