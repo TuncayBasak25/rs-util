@@ -1,3 +1,5 @@
+use std::{num::NonZero, ops::Div};
+
 macro_rules! impl_arith{
     (tuple_1 $self:ident $op:tt $rhs:ident => $output:ident $trait:ident $method:ident) => {
         impl std::ops::$trait<$rhs> for $self {
@@ -71,54 +73,28 @@ macro_rules! impl_arith{
 
 #[derive(Debug, Clone, Copy)]
 pub struct Scalar(f32);
-impl_arith!(tuple_1 Scalar (+-*) Scalar => Scalar);
 
-#[derive(Debug, Clone, Copy)]
-pub struct Positive(f32);
-impl_arith!(tuple_1 Positive (+*/) Positive => Positive);
-impl_arith!(tuple_1 Positive - Positive => Scalar);
-impl_arith!(tuple_1 Positive (+-*) Scalar <=> Scalar);
-impl_arith!(tuple_1 Scalar (/) Positive => Scalar);
+pub struct PossiblyUndefined(f32);
 
-#[derive(Debug, Clone, Copy)]
-pub struct Negative(f32);
-impl_arith!(tuple_1 Negative (+) Negative => Negative);
-impl_arith!(tuple_1 Negative (-) Negative => Scalar);
-impl_arith!(tuple_1 Negative (*/) Negative => Positive);
-impl_arith!(tuple_1 Negative (+-*) Scalar <=> Scalar);
-impl_arith!(tuple_1 Scalar (/) Negative => Scalar);
-impl_arith!(tuple_1 Negative (-) Positive => Negative);
-impl_arith!(tuple_1 Negative (+) Positive <=> Scalar);
-impl_arith!(tuple_1 Negative (*/) Positive <=> Negative);
-impl_arith!(tuple_1 Positive (-) Negative => Positive);
+impl Div<NonZero> for Scalar {
+	type Output = Scalar;
 
-#[derive(Debug, Clone, Copy)]
-pub struct NonZero(f32);
-impl_arith!(tuple_1 NonZero (+-) NonZero => Scalar);
-impl_arith!(tuple_1 NonZero (*/) NonZero => NonZero);
-impl_arith!(tuple_1 NonZero (+-*) Scalar <=> Scalar);
-impl_arith!(tuple_1 Scalar (/) NonZero => Scalar);
-impl_arith!(tuple_1 NonZero (+-) (Positive Negative) <=> Scalar);
-impl_arith!(tuple_1 NonZero (*/) (Positive Negative) <=> NonZero);
+	fn div(self, rhs: Self) -> Self::Output {
+		Scalar(self.0 / rhs.0)
+	}
+}
 
+impl PossiblyUndefined {
+	pub fn trust_me(self) -> Scalar {
+		Scalar(self.0)
+	}
 
-#[derive(Debug, Clone, Copy)]
-pub struct Zero(f32);
-
-
-
-#[cfg(test)]
-mod tests {
-    use super::{NonZero, Scalar};
-
-
-    #[test]
-    fn test() {
-      let a = Scalar(5.0);
-      let b = NonZero(2.0);
-
-      let c = a / b;
-
-      assert!(c.0 == 2.5);
-    }
+	pub fn check(self) -> Option<Scalar> {
+		if self.0.is_infinite() {
+			None
+		}
+		else {
+			Some(Scalar(self.0))
+		}
+	}
 }
